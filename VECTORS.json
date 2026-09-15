@@ -1,0 +1,5 @@
+{
+  "$comment": "The bpplus-reservoir-vectors tag this version is checked against. CI checks out exactly this ref into vectors/.",
+  "repository": "https://github.com/doingnz/bpplus-reservoir-vectors",
+  "ref": "v0.1.0"
+}

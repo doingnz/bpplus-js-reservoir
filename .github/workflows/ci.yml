@@ -1,0 +1,36 @@
+# Known answers, then every test vector, at the vectors tag VECTORS.json pins.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Which vectors
+        id: vectors
+        run: echo "ref=$(node -p "require('./VECTORS.json').ref")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          repository: doingnz/bpplus-reservoir-vectors
+          ref: ${{ steps.vectors.outputs.ref }}
+          path: vectors
+
+      - run: node test/run.mjs
+
+      - name: Every module parses
+        run: |
+          for f in reservoir/*.js; do
+            node --input-type=module -e "await import('./$f')"
+          done

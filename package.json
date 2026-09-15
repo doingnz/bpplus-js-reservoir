@@ -1,0 +1,30 @@
+{
+  "name": "bpplus-js-reservoir",
+  "version": "0.1.0",
+  "description": "Pulse wave, reservoir-excess pressure and wave intensity analysis of Uscom BP+ measurements: a JavaScript port of BPplus-Reservoir (bpp_Res2 beta7).",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+
+  "//": [
+    "There is no build step and there are no runtime dependencies.",
+    "Most consumers copy reservoir/ into their own tree and pin it by tag, as they",
+    "do the BP+ SDK, rather than install it.",
+    "",
+    "version must stay in step with RESERVOIR_JS_VERSION in reservoir/index.js;",
+    "test/run.mjs fails when they disagree."
+  ],
+
+  "main": "./reservoir/index.js",
+  "exports": {
+    ".": "./reservoir/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["reservoir/", "LICENSE", "README.md", "CHANGELOG.md"],
+  "scripts": {
+    "test": "node test/run.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doingnz/bpplus-js-reservoir.git"
+  }
+}
