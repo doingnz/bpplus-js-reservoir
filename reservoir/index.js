@@ -6,7 +6,7 @@
  */
 
 /** This port's version. package.json must agree; test/run.mjs checks. */
-export const RESERVOIR_JS_VERSION = '0.1.0';
+export const RESERVOIR_JS_VERSION = '0.1.1';
 
 export {
   analyseReservoir, qualityFromSnr, ANALYSIS_VERSION, KRESERVOIR_VERSION, MIN_SNR,

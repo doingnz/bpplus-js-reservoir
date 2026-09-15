@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+Documentation only; no value changes.
+
+- `reservoir/NOTICE.md` names the one way the beta7 mode differs from beta7
+  (the diastolic R² guard) and links every correction and kept behaviour to
+  the upstream issue it was reported in.
+
 ## 0.1.0
 
 First release, moved out of bpconnect's `analysis/` folder unchanged apart from
