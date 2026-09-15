@@ -55,6 +55,24 @@ however many corrections there are. The corrections, and the upstream pull
 requests that propose them, are tracked in the vectors repository's
 `corrections.json`.
 
+## The brachial beat
+
+beta7 draws the pulse traces from `baEstimate` but computes the brachial values
+from `sAveragePulse` scaled to the cuff pressures, so its figure is not the
+waveform its numbers come from. Here the two share a source:
+
+```js
+analyseReservoir(input);                               // sBaseLined: beta7's brachial values
+analyseReservoir(input, { normalise: true });          // sAveragePulse normalised to 0–1 first
+analyseReservoir(input, { brachial: 'baEstimate' });   // the mean of the selected baEstimate pulses
+```
+
+With `sBaseLined`, the pulse traces are `sBaseLined` scaled by the same gain and
+offset as `sAveragePulse`. With `baEstimate`, pulses of different lengths are
+averaged sample by sample over those long enough to have each sample, to the
+length of `sAveragePulse` (`averageBeats`). `re_resvers` records the choice; the
+beta7 mode ignores both options.
+
 ## Taking it into a project
 
 Like the BP+ SDK, most consumers copy `reservoir/` into their own tree rather

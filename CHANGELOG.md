@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.0
+
+The pulse traces figure and the brachial average beat now come from the same
+signal. Values under `compatibility: 'beta7'` are unchanged.
+
+- `analyseReservoir(input, { brachial, normalise })`. `brachial: 'sBaseLined'`,
+  the default, keeps beta7's brachial values and draws `sBaseLined`, scaled by
+  the gain and offset that scale `sAveragePulse`. `normalise: true` normalises
+  `sAveragePulse` to 0–1 first, so the beat runs from the cuff diastolic to
+  systolic pressure. `brachial: 'baEstimate'` draws `baEstimate` and averages
+  its selected pulses into the brachial beat.
+- `re_resvers` names the choice: `beta7-bpconnect sBaseLined`,
+  `beta7-bpconnect sBaseLined normalised` or `beta7-bpconnect baEstimate`.
+- `result.corrections` includes the brachial option, with the columns it
+  changes in `columns`.
+- `reservoirInput()` reads `sBaseLined`. New exports `BRACHIAL_SOURCES`,
+  `BRACHIAL_BEAT_COLUMNS` and `averageBeats`; `series.brachial` is the beat.
+
 ## 0.1.1
 
 Documentation only; no value changes.

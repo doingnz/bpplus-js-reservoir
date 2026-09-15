@@ -1,6 +1,6 @@
 {
   "name": "bpplus-js-reservoir",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Pulse wave, reservoir-excess pressure and wave intensity analysis of Uscom BP+ measurements: a JavaScript port of BPplus-Reservoir (bpp_Res2 beta7).",
   "license": "GPL-3.0-or-later",
   "type": "module",

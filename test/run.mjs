@@ -21,7 +21,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-  analyseReservoir, reservoirInput, COLUMNS, RESERVOIR_JS_VERSION,
+  analyseReservoir, averageBeats, reservoirInput, COLUMNS, RESERVOIR_JS_VERSION,
+  CORRECTED_VERSION, BRACHIAL_BEAT_COLUMNS,
 } from '../reservoir/index.js';
 import {
   sgolayFirstDerivative, spline, fzero, fminsearch, findpeaks, round,
@@ -88,6 +89,24 @@ function close(a, b, tolerance) {
 }
 
 check('round sends halves away from zero', round(2.5) === 3 && round(-2.5) === -3);
+
+{
+  // Each sample is the mean of the pulses long enough to have it, NaN left out.
+  const got = averageBeats([[1, 2, 3], [3, 4, 5, 6], [5, NaN, 7]], 5);
+  check('averageBeats averages what each sample has', got.join() === '3,3,5,6', got.join());
+  const short = averageBeats([[1, 2, 3], [3, 4, 5, 6]], 2);
+  check('averageBeats stops at the length asked for', short.join() === '2,3', short.join());
+}
+
+{
+  let refused = false;
+  try {
+    analyseReservoir({}, { brachial: 'sAveragePulse' });
+  } catch (error) {
+    refused = error instanceof RangeError;
+  }
+  check('an unknown brachial source is refused', refused);
+}
 
 // ── 2. Version ───────────────────────────────────────────────────────────────
 
@@ -158,6 +177,49 @@ if (!fs.existsSync(manifestFile)) {
         .map(p => p + 1);
       check(`${vector.name}: pulse traces are the selected pulses`,
         corrected.series.pulses?.numbers.join() === selected.join());
+    }
+
+    // The brachial options, on the same recording.
+    if (corrected.processed) {
+      const brachialAgrees = (a, b) => BRACHIAL_BEAT_COLUMNS.every(c => agrees(a.values[c], b.values[c], 1e-12));
+      const span = Math.max(...input.sAveragePulse) - Math.min(...input.sAveragePulse);
+      const pp = input.sys - input.dia;
+      const sameSample = (a, b) => (Number.isNaN(a) && Number.isNaN(b)) || close(a, b, 1e-12);
+      // A sample from the middle pulse, against the signal it should come from.
+      const sample = (result, signal, scale) => {
+        const pulses = result.series.pulses;
+        if (!pulses?.traces.length) return false;
+        const k = Math.floor(pulses.traces.length / 2);
+        const start = input.sPulseStartIndexes[pulses.numbers[k] - 1];
+        return sameSample(pulses.traces[k][10], scale(signal[start + 10]));
+      };
+
+      check(`${vector.name}: sBaseLined keeps beta7's brachial values`, brachialAgrees(corrected, beta7));
+      check(`${vector.name}: sBaseLined draws sBaseLined scaled as sAveragePulse is`,
+        sample(corrected, input.sBaseLined, v => input.dia + v * pp / span));
+      check(`${vector.name}: re_resvers says sBaseLined`,
+        corrected.values.re_resvers === `${CORRECTED_VERSION} sBaseLined`, corrected.values.re_resvers);
+
+      const normalised = analyseReservoir(input, { normalise: true });
+      const beat = normalised.series.brachial?.pressure || [NaN];
+      const lowest = Math.min(...input.sAveragePulse);
+      check(`${vector.name}: normalised brachial beat runs from DIA to SYS`,
+        close(Math.min(...beat), input.dia, 1e-9) && close(Math.max(...beat), input.sys, 1e-9),
+        `${Math.min(...beat)} to ${Math.max(...beat)}`);
+      check(`${vector.name}: normalised draws sBaseLined scaled the same way`,
+        sample(normalised, input.sBaseLined, v => input.dia + (v - lowest) * pp / span));
+      check(`${vector.name}: re_resvers says normalised`,
+        normalised.values.re_resvers === `${CORRECTED_VERSION} sBaseLined normalised`, normalised.values.re_resvers);
+
+      const estimate = analyseReservoir(input, { brachial: 'baEstimate', normalise: true });
+      const drawn = estimate.series.pulses?.traces || [];
+      const averaged = estimate.series.brachial?.pressure || [];
+      const expectedBeat = averageBeats(drawn, input.sAveragePulse.length);
+      check(`${vector.name}: baEstimate draws baEstimate`, sample(estimate, input.baEstimate, v => v));
+      check(`${vector.name}: baEstimate beat is the mean of the pulses drawn`,
+        averaged.length === expectedBeat.length && averaged.every((v, i) => sameSample(v, expectedBeat[i])));
+      check(`${vector.name}: re_resvers says baEstimate, and normalise is ignored`,
+        estimate.values.re_resvers === `${CORRECTED_VERSION} baEstimate`, estimate.values.re_resvers);
     }
   }
   check('at least one vector was compared', compared > 0);
